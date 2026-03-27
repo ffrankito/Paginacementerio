@@ -7,8 +7,10 @@ import { petTypes } from "./data/petTypes";
 import { sizes } from "./data/sizes";
 import { services } from "./data/services";
 import { pickupMethods } from "./data/pickupMethods";
+import { ashesDelivery } from "./data/ashesDelivery";
+import { zones } from "./data/zones";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 6;
 
 export default function App() {
   const [step, setStep] = useState(1);
@@ -17,6 +19,8 @@ export default function App() {
     size: "",
     service: "",
     pickupMethod: "",
+    ashesDelivery: "",
+    zone: "",
   });
 
   const handleNext = () => {
@@ -38,6 +42,8 @@ export default function App() {
     if (step === 2) return formData.size !== "";
     if (step === 3) return formData.service !== "";
     if (step === 4) return formData.pickupMethod !== "";
+    if (step === 5) return formData.ashesDelivery !== "";
+    if (step === 6) return formData.zone !== "";
     return false;
   };
 
@@ -154,6 +160,67 @@ export default function App() {
       );
     }
 
+    if (step === 5) {
+      return (
+        <>
+          <div className="workspace__header">
+            <h2 className="section-title">¿Cómo querés recibir las cenizas?</h2>
+            <p className="section-text">
+              Seleccioná si las vas a retirar en sucursal o si querés entrega a
+              domicilio.
+            </p>
+          </div>
+
+          <div className="grid grid-2">
+            {ashesDelivery.map((item) => (
+              <OptionCard
+                key={item.id}
+                title={item.title}
+                desc={item.desc}
+                selected={formData.ashesDelivery === item.id}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    ashesDelivery: item.id,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    if (step === 6) {
+      return (
+        <>
+          <div className="workspace__header">
+            <h2 className="section-title">Seleccioná tu zona</h2>
+            <p className="section-text">
+              Esto nos ayuda a organizar correctamente la logística del servicio.
+            </p>
+          </div>
+
+          <div className="grid grid-2">
+            {zones.map((item) => (
+              <OptionCard
+                key={item.id}
+                title={item.title}
+                desc={item.desc}
+                selected={formData.zone === item.id}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    zone: item.id,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>
+      );
+    }
+
     return null;
   };
 
@@ -211,6 +278,18 @@ export default function App() {
                 {pickupMethods.find(
                   (item) => item.id === formData.pickupMethod
                 )?.title || "—"}
+              </p>
+
+              <p>
+                <strong>Cenizas:</strong>{" "}
+                {ashesDelivery.find(
+                  (item) => item.id === formData.ashesDelivery
+                )?.title || "—"}
+              </p>
+
+              <p>
+                <strong>Zona:</strong>{" "}
+                {zones.find((item) => item.id === formData.zone)?.title || "—"}
               </p>
             </div>
           </aside>
