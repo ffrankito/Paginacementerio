@@ -92,7 +92,9 @@ export default function QuotePage({ onBackHome }) {
 
   const renderQuestionHeader = (title, text) => (
     <div className="question-block">
-      <span className="question-block__eyebrow">Cotización paso a paso</span>
+      <span className="question-block__eyebrow">
+        Aires de Paz · Cotización paso a paso
+      </span>
       <h2 className="question-block__title">{title}</h2>
       <p className="question-block__text">{text}</p>
     </div>
@@ -111,18 +113,20 @@ export default function QuotePage({ onBackHome }) {
             <div className="grid grid-2">
               {principalPetTypes.map((item) => (
                 <OptionCard
-                  key={item.id}
-                  title={item.title}
-                  desc={item.desc}
-                  selected={formData.petType === item.id}
-                  onClick={() => {
-                    if (item.id === "otro") {
-                      setShowOtherPetTypes(true);
-                      setFormData((prev) => ({ ...prev, petType: "" }));
-                    } else {
-                      setFormData((prev) => ({ ...prev, petType: item.id }));
-                    }
-                  }}
+  key={item.id}
+  title={item.title}
+  desc={item.desc}
+  icon={item.icon}
+  variant={item.id}
+  selected={formData.petType === item.id}
+  onClick={() => {
+    if (item.id === "otro") {
+      setShowOtherPetTypes(true);
+      setFormData((prev) => ({ ...prev, petType: "" }));
+    } else {
+      setFormData((prev) => ({ ...prev, petType: item.id }));
+    }
+  }}
                 />
               ))}
             </div>
@@ -141,13 +145,15 @@ export default function QuotePage({ onBackHome }) {
             {otherPetTypes.map((item) => (
               <OptionCard
                 key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.petType === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, petType: item.id }))
-                }
-              />
+  title={item.title}
+  desc={item.desc}
+  icon={item.icon}
+  variant="other-detail"
+  selected={formData.petType === item.id}
+  onClick={() =>
+    setFormData((prev) => ({ ...prev, petType: item.id }))
+  }
+/>
             ))}
           </div>
         </>
@@ -363,7 +369,7 @@ export default function QuotePage({ onBackHome }) {
 
     return (
       <div className="success-panel">
-        <span className="success-panel__badge">Solicitud completada</span>
+        <span className="success-panel__badge">Aires de Paz</span>
         <h2 className="success-panel__title">
           Gracias por confiar en nosotros
         </h2>
@@ -421,6 +427,7 @@ export default function QuotePage({ onBackHome }) {
         </div>
 
         <header className="hero card-shell">
+          <span className="hero__brand">Aires de Paz</span>
           <span className="hero__badge">Cotizador online</span>
           <h1 className="hero__title">Elegí el homenaje para tu mascota</h1>
           <p className="hero__text">

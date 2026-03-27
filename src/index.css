@@ -75,35 +75,27 @@ img {
   backdrop-filter: blur(10px);
 }
 
-.section-title {
-  margin: 0 0 10px;
-  font-size: 32px;
-  line-height: 1.15;
-}
-
-.section-text {
-  margin: 0;
-  color: var(--text-soft);
-  line-height: 1.6;
-}
-
 .grid {
   display: grid;
   gap: 18px;
 }
 
 .grid-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(300px, 360px));
+  justify-content: center;
+  gap: 22px;
 }
 
 .option-card {
-   width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #ffffff 0%, #fbf8f5 100%);
-  padding: 28px;
-  text-align: left;
+  width: 100%;
+  min-height: 272px;
+  border: 1px solid #e4ddd7;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfbfa 100%);
+  padding: 30px 26px;
+  text-align: center;
   cursor: pointer;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.06);
   transition:
     transform var(--transition-fast),
     box-shadow var(--transition-fast),
@@ -112,8 +104,9 @@ img {
 }
 
 .option-card:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.10);
+  border-color: #d8d1cb;
 }
 
 .option-card:focus-visible {
@@ -122,26 +115,149 @@ img {
 }
 
 .option-card.selected {
-   border: 2px solid var(--primary);
-  background: linear-gradient(180deg, #f9f4ef 0%, #f2e7dd 100%);
-  box-shadow: 0 16px 34px rgba(111, 81, 68, 0.14);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.10);
 }
 
 .option-card__content {
-  display: block;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-card__icon-wrap {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f0ee;
+  margin: 0 auto 18px;
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.option-card__icon {
+  width: 54px;
+  height: 54px;
+  color: #6f6f6f;
+  transition:
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .option-card__title {
-  margin: 0 0 8px;
-  font-size: 22px;
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 800;
   line-height: 1.2;
+  text-transform: uppercase;
+  color: #8c8c8c;
+  transition: color var(--transition-fast);
 }
 
 .option-card__desc {
   margin: 0;
-  color: var(--text-soft);
-  line-height: 1.55;
+  max-width: 240px;
+  color: #6f6f6f;
+  line-height: 1.5;
   font-size: 15px;
+}
+
+/* CANINO */
+.option-card--canino:hover .option-card__icon-wrap,
+.option-card--canino.selected .option-card__icon-wrap {
+  background: #e4f7ff;
+  box-shadow: 0 12px 22px rgba(86, 191, 232, 0.16);
+}
+
+.option-card--canino:hover .option-card__icon,
+.option-card--canino.selected .option-card__icon {
+  color: #56bfe8;
+  transform: scale(1.05);
+}
+
+.option-card--canino:hover .option-card__title,
+.option-card--canino.selected .option-card__title {
+  color: #56bfe8;
+}
+
+.option-card--canino.selected {
+  border: 1.5px solid #56bfe8;
+  background: linear-gradient(180deg, #ffffff 0%, #f4fbff 100%);
+}
+
+/* FELINO */
+.option-card--felino:hover .option-card__icon-wrap,
+.option-card--felino.selected .option-card__icon-wrap {
+  background: #fff0e8;
+  box-shadow: 0 12px 22px rgba(240, 169, 120, 0.16);
+}
+
+.option-card--felino:hover .option-card__icon,
+.option-card--felino.selected .option-card__icon {
+  color: #f0a978;
+  transform: scale(1.05);
+}
+
+.option-card--felino:hover .option-card__title,
+.option-card--felino.selected .option-card__title {
+  color: #f0a978;
+}
+
+.option-card--felino.selected {
+  border: 1.5px solid #f0a978;
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f3 100%);
+}
+
+/* OTRO */
+.option-card--otro:hover .option-card__icon-wrap,
+.option-card--otro.selected .option-card__icon-wrap {
+  background: #eef7ea;
+  box-shadow: 0 12px 22px rgba(151, 187, 116, 0.16);
+}
+
+.option-card--otro:hover .option-card__icon,
+.option-card--otro.selected .option-card__icon {
+  color: #97bb74;
+  transform: scale(1.05);
+}
+
+.option-card--otro:hover .option-card__title,
+.option-card--otro.selected .option-card__title {
+  color: #97bb74;
+}
+
+.option-card--otro.selected {
+  border: 1.5px solid #97bb74;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fcf5 100%);
+}
+
+/* SUBTIPOS DE OTROS */
+.option-card--other-detail:hover .option-card__icon-wrap,
+.option-card--other-detail.selected .option-card__icon-wrap {
+  background: #f3eefb;
+  box-shadow: 0 12px 22px rgba(161, 140, 202, 0.16);
+}
+
+.option-card--other-detail:hover .option-card__icon,
+.option-card--other-detail.selected .option-card__icon {
+  color: #a18cca;
+  transform: scale(1.05);
+}
+
+.option-card--other-detail:hover .option-card__title,
+.option-card--other-detail.selected .option-card__title {
+  color: #a18cca;
+}
+
+.option-card--other-detail.selected {
+  border: 1.5px solid #a18cca;
+  background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
 }
 
 .action-button {
@@ -176,7 +292,7 @@ img {
 }
 
 .action-button--secondary {
-background: #faf5f0;
+  background: #faf5f0;
   color: var(--text);
   border: 1px solid var(--border);
 }
@@ -215,7 +331,7 @@ background: #faf5f0;
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-bottom: 16px;
-  box-shadow: 0 10px 24px rgba(216, 137, 98, 0.22);
+  box-shadow: 0 10px 24px rgba(111, 81, 68, 0.18);
 }
 
 .hero__title {
@@ -272,7 +388,7 @@ background: #faf5f0;
 }
 
 .step-indicator {
- display: flex;
+  display: flex;
   justify-content: center;
   align-items: center;
   gap: 14px;
@@ -285,7 +401,7 @@ background: #faf5f0;
 }
 
 .step-indicator__item {
-width: 50px;
+  width: 50px;
   height: 50px;
   border-radius: 999px;
   background: #e7d9cf;
@@ -360,7 +476,7 @@ width: 50px;
 .form-field textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(216, 137, 98, 0.14);
+  box-shadow: 0 0 0 3px rgba(111, 81, 68, 0.14);
 }
 
 .form-field--full {
@@ -382,7 +498,7 @@ width: 50px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(216, 137, 98, 0.22);
+  box-shadow: 0 10px 24px rgba(111, 81, 68, 0.18);
 }
 
 .success-panel__title {
@@ -455,7 +571,7 @@ width: 50px;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 16px;
-  box-shadow: 0 10px 24px rgba(216, 137, 98, 0.22);
+  box-shadow: 0 10px 24px rgba(111, 81, 68, 0.18);
 }
 
 .landing__title {
@@ -504,8 +620,8 @@ width: 50px;
 }
 
 .question-block {
-  max-width: 800px;
-  margin: 0 auto 30px;
+  max-width: 920px;
+  margin: 0 auto 42px;
   text-align: center;
 }
 
@@ -550,19 +666,46 @@ width: 50px;
 }
 
 .workspace--question {
-  padding: 38px;
+  padding: 48px 38px;
 }
 
 .workspace--question .grid {
   margin-top: 8px;
 }
 
+.grid.grid-2 > .option-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 360px;
+  justify-self: center;
+}
+
 @media (max-width: 900px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid.grid-2 > .option-card:last-child:nth-child(odd) {
+    grid-column: auto;
+    max-width: 100%;
+  }
+
+  .workspace--question {
+    padding: 28px 22px;
+  }
+
+  .question-block {
+    margin-bottom: 30px;
+  }
+
+  .option-card {
+    min-height: 230px;
+  }
+
   .app {
     padding: 24px 16px;
   }
 
-  .grid-2,
   .form-grid,
   .landing {
     grid-template-columns: 1fr;
@@ -571,8 +714,7 @@ width: 50px;
   .hero,
   .workspace,
   .summary,
-  .landing,
-  .workspace--question {
+  .landing {
     padding: 24px;
   }
 
@@ -625,11 +767,19 @@ width: 50px;
     width: 42px;
     height: 42px;
   }
-}
 
-/* Cuando queda 1 sola card en una grilla de 2 columnas, centrarla */
-.grid.grid-2 > .option-card:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  max-width: 420px;
-  justify-self: center;
+  .option-card {
+    min-height: 220px;
+    padding: 24px 20px;
+  }
+
+  .option-card__icon-wrap {
+    width: 82px;
+    height: 82px;
+  }
+
+  .option-card__icon {
+    width: 46px;
+    height: 46px;
+  }
 }
