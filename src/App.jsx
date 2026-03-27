@@ -10,7 +10,7 @@ import { pickupMethods } from "./data/pickupMethods";
 import { ashesDelivery } from "./data/ashesDelivery";
 import { zones } from "./data/zones";
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export default function App() {
   const [step, setStep] = useState(1);
@@ -42,6 +42,23 @@ export default function App() {
     }
   };
 
+  const resetFlow = () => {
+    setStep(1);
+    setFormData({
+      petType: "",
+      size: "",
+      service: "",
+      pickupMethod: "",
+      ashesDelivery: "",
+      zone: "",
+      petName: "",
+      ownerName: "",
+      phone: "",
+      email: "",
+      notes: "",
+    });
+  };
+
   const canContinue = () => {
     if (step === 1) return formData.petType !== "";
     if (step === 2) return formData.size !== "";
@@ -57,8 +74,27 @@ export default function App() {
         formData.email.trim() !== ""
       );
     }
+    if (step === 8) return true;
     return false;
   };
+
+  const selectedPetType =
+    petTypes.find((item) => item.id === formData.petType)?.title || "—";
+
+  const selectedSize =
+    sizes.find((item) => item.id === formData.size)?.title || "—";
+
+  const selectedService =
+    services.find((item) => item.id === formData.service)?.title || "—";
+
+  const selectedPickup =
+    pickupMethods.find((item) => item.id === formData.pickupMethod)?.title || "—";
+
+  const selectedAshes =
+    ashesDelivery.find((item) => item.id === formData.ashesDelivery)?.title || "—";
+
+  const selectedZone =
+    zones.find((item) => item.id === formData.zone)?.title || "—";
 
   const renderStepContent = () => {
     if (step === 1) {
@@ -308,7 +344,40 @@ export default function App() {
       );
     }
 
-    return null;
+    return (
+      <div className="success-panel">
+        <span className="success-panel__badge">Solicitud completada</span>
+        <h2 className="success-panel__title">
+          Gracias por confiar en nosotros
+        </h2>
+        <p className="success-panel__text">
+          Tu solicitud quedó registrada correctamente. En la versión final,
+          desde acá podremos enviarla a WhatsApp, email o guardarla en base de
+          datos para el panel administrador.
+        </p>
+
+        <div className="success-panel__summary">
+          <p><strong>Mascota:</strong> {formData.petName || "—"}</p>
+          <p><strong>Tipo:</strong> {selectedPetType}</p>
+          <p><strong>Tamaño:</strong> {selectedSize}</p>
+          <p><strong>Servicio:</strong> {selectedService}</p>
+          <p><strong>Retiro:</strong> {selectedPickup}</p>
+          <p><strong>Cenizas:</strong> {selectedAshes}</p>
+          <p><strong>Zona:</strong> {selectedZone}</p>
+          <p><strong>Responsable:</strong> {formData.ownerName || "—"}</p>
+          <p><strong>Teléfono:</strong> {formData.phone || "—"}</p>
+          <p><strong>Email:</strong> {formData.email || "—"}</p>
+        </div>
+
+        <button
+          type="button"
+          className="action-button action-button--primary"
+          onClick={resetFlow}
+        >
+          Empezar de nuevo
+        </button>
+      </div>
+    );
   };
 
   return (
@@ -330,67 +399,31 @@ export default function App() {
           <section className="workspace card-shell">
             {renderStepContent()}
 
-            <NavigationButtons
-              step={step}
-              totalSteps={TOTAL_STEPS}
-              onBack={handleBack}
-              onNext={handleNext}
-              canContinue={canContinue()}
-            />
+            {step < TOTAL_STEPS && (
+              <NavigationButtons
+                step={step}
+                totalSteps={TOTAL_STEPS}
+                onBack={handleBack}
+                onNext={handleNext}
+                canContinue={canContinue()}
+              />
+            )}
           </section>
 
           <aside className="summary card-shell">
             <h3 className="summary__title">Resumen</h3>
 
             <div className="summary__box">
-              <p>
-                <strong>Mascota:</strong>{" "}
-                {petTypes.find((item) => item.id === formData.petType)?.title ||
-                  "—"}
-              </p>
-
-              <p>
-                <strong>Tamaño:</strong>{" "}
-                {sizes.find((item) => item.id === formData.size)?.title || "—"}
-              </p>
-
-              <p>
-                <strong>Servicio:</strong>{" "}
-                {services.find((item) => item.id === formData.service)?.title ||
-                  "—"}
-              </p>
-
-              <p>
-                <strong>Retiro:</strong>{" "}
-                {pickupMethods.find(
-                  (item) => item.id === formData.pickupMethod
-                )?.title || "—"}
-              </p>
-
-              <p>
-                <strong>Cenizas:</strong>{" "}
-                {ashesDelivery.find(
-                  (item) => item.id === formData.ashesDelivery
-                )?.title || "—"}
-              </p>
-
-              <p>
-                <strong>Zona:</strong>{" "}
-                {zones.find((item) => item.id === formData.zone)?.title || "—"}
-              </p>
-
-              <p>
-                <strong>Responsable:</strong>{" "}
-                {formData.ownerName.trim() || "—"}
-              </p>
-
-              <p>
-                <strong>Teléfono:</strong> {formData.phone.trim() || "—"}
-              </p>
-
-              <p>
-                <strong>Email:</strong> {formData.email.trim() || "—"}
-              </p>
+              <p><strong>Mascota:</strong> {selectedPetType}</p>
+              <p><strong>Tamaño:</strong> {selectedSize}</p>
+              <p><strong>Servicio:</strong> {selectedService}</p>
+              <p><strong>Retiro:</strong> {selectedPickup}</p>
+              <p><strong>Cenizas:</strong> {selectedAshes}</p>
+              <p><strong>Zona:</strong> {selectedZone}</p>
+              <p><strong>Nombre mascota:</strong> {formData.petName.trim() || "—"}</p>
+              <p><strong>Responsable:</strong> {formData.ownerName.trim() || "—"}</p>
+              <p><strong>Teléfono:</strong> {formData.phone.trim() || "—"}</p>
+              <p><strong>Email:</strong> {formData.email.trim() || "—"}</p>
             </div>
           </aside>
         </main>
