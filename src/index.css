@@ -273,3 +273,50 @@ img {
     padding: 22px;
   }
 }
+
+.step-indicator {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 24px;
+}
+
+.step-indicator__item {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #d9dbe0;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition:
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.step-indicator__item.is-active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-soft);
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+@media (max-width: 640px) {
+  .navigation-buttons {
+    flex-direction: column-reverse;
+  }
+
+  .navigation-buttons .action-button {
+    width: 100%;
+  }
+}
