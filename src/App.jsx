@@ -6,8 +6,9 @@ import OptionCard from "./components/OptionCard";
 import { petTypes } from "./data/petTypes";
 import { sizes } from "./data/sizes";
 import { services } from "./data/services";
+import { pickupMethods } from "./data/pickupMethods";
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 export default function App() {
   const [step, setStep] = useState(1);
@@ -15,10 +16,12 @@ export default function App() {
     petType: "",
     size: "",
     service: "",
+    pickupMethod: "",
   });
 
   const handleNext = () => {
     if (!canContinue()) return;
+
     if (step < TOTAL_STEPS) {
       setStep((prev) => prev + 1);
     }
@@ -34,6 +37,7 @@ export default function App() {
     if (step === 1) return formData.petType !== "";
     if (step === 2) return formData.size !== "";
     if (step === 3) return formData.service !== "";
+    if (step === 4) return formData.pickupMethod !== "";
     return false;
   };
 
@@ -92,30 +96,65 @@ export default function App() {
       );
     }
 
-    return (
-      <>
-        <div className="workspace__header">
-          <h2 className="section-title">Elegí el servicio</h2>
-          <p className="section-text">
-            Seleccioná la opción que mejor acompañe este momento.
-          </p>
-        </div>
+    if (step === 3) {
+      return (
+        <>
+          <div className="workspace__header">
+            <h2 className="section-title">Elegí el servicio</h2>
+            <p className="section-text">
+              Seleccioná la opción que mejor acompañe este momento.
+            </p>
+          </div>
 
-        <div className="grid grid-2">
-          {services.map((item) => (
-            <OptionCard
-              key={item.id}
-              title={item.title}
-              desc={item.desc}
-              selected={formData.service === item.id}
-              onClick={() =>
-                setFormData((prev) => ({ ...prev, service: item.id }))
-              }
-            />
-          ))}
-        </div>
-      </>
-    );
+          <div className="grid grid-2">
+            {services.map((item) => (
+              <OptionCard
+                key={item.id}
+                title={item.title}
+                desc={item.desc}
+                selected={formData.service === item.id}
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, service: item.id }))
+                }
+              />
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    if (step === 4) {
+      return (
+        <>
+          <div className="workspace__header">
+            <h2 className="section-title">¿Cómo preferís el retiro?</h2>
+            <p className="section-text">
+              Elegí si vas a acercar a tu mascota a una sucursal o si preferís
+              que el retiro se haga a domicilio.
+            </p>
+          </div>
+
+          <div className="grid grid-2">
+            {pickupMethods.map((item) => (
+              <OptionCard
+                key={item.id}
+                title={item.title}
+                desc={item.desc}
+                selected={formData.pickupMethod === item.id}
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    pickupMethod: item.id,
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -155,14 +194,23 @@ export default function App() {
                 {petTypes.find((item) => item.id === formData.petType)?.title ||
                   "—"}
               </p>
+
               <p>
                 <strong>Tamaño:</strong>{" "}
                 {sizes.find((item) => item.id === formData.size)?.title || "—"}
               </p>
+
               <p>
                 <strong>Servicio:</strong>{" "}
                 {services.find((item) => item.id === formData.service)?.title ||
                   "—"}
+              </p>
+
+              <p>
+                <strong>Retiro:</strong>{" "}
+                {pickupMethods.find(
+                  (item) => item.id === formData.pickupMethod
+                )?.title || "—"}
               </p>
             </div>
           </aside>
