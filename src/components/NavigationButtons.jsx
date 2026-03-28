@@ -1,30 +1,23 @@
-export default function NavigationButtons({
-  step,
-  totalSteps,
-  onBack,
-  onNext,
-  canContinue,
-}) {
-  const isLastStep = step === totalSteps;
-
+export default function NavigationButtons({ step, totalSteps, onBack, onNext, canContinue }) {
   return (
-    <div className="navigation-buttons">
-      <button
-        type="button"
-        className="action-button action-button--secondary"
-        onClick={onBack}
-        disabled={step === 1}
-      >
-        Volver atrás
-      </button>
+    <div className="nav-buttons">
+      {step > 1 && (
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={onBack}
+        >
+          ← Volver
+        </button>
+      )}
 
       <button
         type="button"
-        className="action-button action-button--primary"
+        className="btn btn--primary"
         onClick={onNext}
         disabled={!canContinue}
       >
-        {isLastStep ? "Finalizar" : "Siguiente"}
+        {step === totalSteps - 1 ? "Ver resumen →" : "Siguiente →"}
       </button>
     </div>
   );

@@ -1,17 +1,15 @@
 import { useState } from "react";
 import "./index.css";
-import HomePage from "./pages/HomePage";
+import Header from "./components/Header";
 import QuotePage from "./pages/QuotePage";
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
+  const goToHome = () => window.open("https://www.airesdepaz.com/", "_blank");
 
-  const goToQuote = () => setCurrentPage("quote");
-  const goToHome = () => setCurrentPage("home");
-
-  return currentPage === "home" ? (
-    <HomePage onStart={goToQuote} />
-  ) : (
-    <QuotePage onBackHome={goToHome} />
+  return (
+    <>
+      <Header />
+      <QuotePage onBackHome={goToHome} />
+    </>
   );
 }

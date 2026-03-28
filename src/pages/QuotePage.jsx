@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { Dog, Cat, PawPrint, Rabbit, Bird, Scale, MapPin } from "lucide-react";
 import StepIndicator from "../components/StepIndicator";
-import NavigationButtons from "../components/NavigationButtons";
-import OptionCard from "../components/OptionCard";
+import { supabase } from "../lib/supabase";
 import { petTypes } from "../data/petTypes";
 import { sizes } from "../data/sizes";
 import { services } from "../data/services";
@@ -22,41 +22,29 @@ const initialFormData = {
   ownerName: "",
   phone: "",
   email: "",
-  notes: "",
 };
 
-export default function QuotePage({ onBackHome }) {
+// Estado abierto de features por servicio
+const initialOpenFeatures = {
+  "huellitas": false,
+  "amigos-para-siempre": false,
+  "amigos-de-verdad": false,
+};
+
+export default function QuotePage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(initialFormData);
   const [showOtherPetTypes, setShowOtherPetTypes] = useState(false);
+  const [openFeatures, setOpenFeatures] = useState(initialOpenFeatures);
+  const [animKey, setAnimKey] = useState(0);
 
-  const principalPetTypes = petTypes.filter((item) => item.group === "principal");
-  const otherPetTypes = petTypes.filter((item) => item.group === "otros");
+  const needsZone = formData.pickupMethod === "domicilio";
+  const effectiveTotalSteps = needsZone ? TOTAL_STEPS : TOTAL_STEPS - 1;
 
-  const handleNext = () => {
-    if (!canContinue()) return;
-    if (step < TOTAL_STEPS) {
-      setStep((prev) => prev + 1);
-    }
-  };
+  const principalPetTypes = petTypes.filter((p) => p.group === "principal");
+  const otherPetTypes     = petTypes.filter((p) => p.group === "otros");
 
-  const handleBack = () => {
-    if (step === 1 && showOtherPetTypes) {
-      setShowOtherPetTypes(false);
-      setFormData((prev) => ({ ...prev, petType: "" }));
-      return;
-    }
-
-    if (step > 1) {
-      setStep((prev) => prev - 1);
-    }
-  };
-
-  const resetFlow = () => {
-    setStep(1);
-    setShowOtherPetTypes(false);
-    setFormData(initialFormData);
-  };
+  const goTo = (n) => { setStep(n); setAnimKey((k) => k + 1); };
 
   const canContinue = () => {
     if (step === 1) return formData.petType !== "";
@@ -64,413 +52,423 @@ export default function QuotePage({ onBackHome }) {
     if (step === 3) return formData.service !== "";
     if (step === 4) return formData.pickupMethod !== "";
     if (step === 5) return formData.ashesDelivery !== "";
-    if (step === 6) return formData.zone !== "";
-    if (step === 7) {
+    if (step === 6 && needsZone) return formData.zone !== "";
+    const dataStep = needsZone ? 7 : 6;
+    if (step === dataStep) {
       return (
-        formData.petName.trim() !== "" &&
+        formData.petName.trim()   !== "" &&
         formData.ownerName.trim() !== "" &&
-        formData.phone.trim() !== "" &&
-        formData.email.trim() !== ""
+        formData.phone.trim()     !== "" &&
+        formData.email.trim()     !== ""
       );
     }
-    if (step === 8) return true;
-    return false;
+    return true;
   };
 
-  const selectedPetType =
-    petTypes.find((item) => item.id === formData.petType)?.title || "—";
-  const selectedSize =
-    sizes.find((item) => item.id === formData.size)?.title || "—";
-  const selectedService =
-    services.find((item) => item.id === formData.service)?.title || "—";
-  const selectedPickup =
-    pickupMethods.find((item) => item.id === formData.pickupMethod)?.title || "—";
-  const selectedAshes =
-    ashesDelivery.find((item) => item.id === formData.ashesDelivery)?.title || "—";
-  const selectedZone =
-    zones.find((item) => item.id === formData.zone)?.title || "—";
+  const handleNext = async () => {
+    if (!canContinue()) return;
 
-  const renderQuestionHeader = (title, text) => (
-    <div className="question-block">
-      <span className="question-block__eyebrow">
-        Aires de Paz · Cotización paso a paso
-      </span>
-      <h2 className="question-block__title">{title}</h2>
-      <p className="question-block__text">{text}</p>
+    const dataStep = needsZone ? 7 : 6;
+
+    // Al terminar el paso de datos → guardar en Supabase antes de avanzar
+    if (step === dataStep) {
+      try {
+        await supabase.from('quotes').insert({
+          pet_type:       formData.petType,
+          pet_size:       formData.size,
+          pet_name:       formData.petName,
+          service:        formData.service,
+          pickup_method:  formData.pickupMethod,
+          ashes_delivery: formData.ashesDelivery,
+          zone:           formData.zone || null,
+          owner_name:     formData.ownerName,
+          phone:          formData.phone,
+          email:          formData.email,
+        });
+      } catch (err) {
+        // No bloquear al usuario si falla el guardado
+        console.error('Error guardando cotización:', err);
+      }
+    }
+
+    // Saltar zona si retiro en sucursal
+    if (step === 5 && !needsZone) { goTo(6); return; }
+    if (step < effectiveTotalSteps) goTo(step + 1);
+  };
+
+  const handleBack = () => {
+    if (step === 1 && showOtherPetTypes) {
+      setShowOtherPetTypes(false);
+      setFormData((p) => ({ ...p, petType: "" }));
+      return;
+    }
+    if (step === 6 && !needsZone) { goTo(5); return; }
+    if (step > 1) goTo(step - 1);
+  };
+
+  const resetFlow = () => {
+    setStep(1);
+    setShowOtherPetTypes(false);
+    setFormData(initialFormData);
+    setOpenFeatures(initialOpenFeatures);
+    setAnimKey((k) => k + 1);
+  };
+
+  const label = (list, id) => list.find((i) => i.id === id)?.title || "—";
+  const selectedService = services.find((s) => s.id === formData.service);
+
+  // ── STEP 1: tipo de mascota ────────────────────────────────
+  const renderStep1 = () => (
+    <div className="section-block">
+      <p className="section-block__title">
+        {showOtherPetTypes
+          ? "Indicanos qué tipo de mascota es"
+          : "Contanos qué mascota vamos a acompañar en este momento"}
+      </p>
+      <div className="pet-grid">
+        {(!showOtherPetTypes ? principalPetTypes : otherPetTypes).map((item) => {
+          const Icon = item.icon;
+          const variant = showOtherPetTypes ? "other-detail" : item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`option-card option-card--${variant}${formData.petType === item.id ? " selected" : ""}`}
+              onClick={() => {
+                if (item.id === "otro" && !showOtherPetTypes) {
+                  setShowOtherPetTypes(true);
+                  setFormData((p) => ({ ...p, petType: "" }));
+                } else {
+                  setFormData((p) => ({ ...p, petType: item.id }));
+                }
+              }}
+            >
+              {Icon && (
+                <div className="option-card__icon-wrap">
+                  <Icon className="option-card__icon" strokeWidth={1.5} />
+                </div>
+              )}
+              <div className="option-card__title">{item.title}</div>
+              <div className="option-card__desc">{item.desc}</div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 
-  const renderStepContent = () => {
-    if (step === 1) {
-      if (!showOtherPetTypes) {
-        return (
-          <>
-            {renderQuestionHeader(
-              "Contanos qué mascota vamos a acompañar en este momento",
-              "Elegí si se trata de un canino, un felino u otro tipo de mascota."
-            )}
+  // ── STEP 2: tamaño ─────────────────────────────────────────
+  const renderStep2 = () => (
+    <div className="section-block">
+      <p className="section-block__title">¿De qué tamaño es tu mascota?</p>
+      <div className="size-grid">
+        {sizes.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`size-card${formData.size === item.id ? " selected" : ""}`}
+            onClick={() => setFormData((p) => ({ ...p, size: item.id }))}
+          >
+            <div className="size-card__name">{item.title}</div>
+            <div className="size-card__range">{item.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
-            <div className="grid grid-2">
-              {principalPetTypes.map((item) => (
-                <OptionCard
-  key={item.id}
-  title={item.title}
-  desc={item.desc}
-  icon={item.icon}
-  variant={item.id}
-  selected={formData.petType === item.id}
-  onClick={() => {
-    if (item.id === "otro") {
-      setShowOtherPetTypes(true);
-      setFormData((prev) => ({ ...prev, petType: "" }));
-    } else {
-      setFormData((prev) => ({ ...prev, petType: item.id }));
-    }
-  }}
-                />
-              ))}
+  // ── STEP 3: servicio ───────────────────────────────────────
+  const renderStep3 = () => (
+    <div className="section-block">
+      <p className="section-block__title">
+        Elegí el servicio que te gustaría ofrecerle
+      </p>
+      <div className="service-grid">
+        {services.map((item) => {
+          const isOpen = openFeatures[item.id];
+          return (
+            <div
+              key={item.id}
+              className={`service-card${formData.service === item.id ? " selected" : ""}`}
+              onClick={() => setFormData((p) => ({ ...p, service: item.id }))}
+            >
+              {item.badge && (
+                <div className="service-card__badge">{item.badge}</div>
+              )}
+              <div className="service-card__name">{item.title}</div>
+              <div className="service-card__desc">{item.desc}</div>
+
+              <button
+                type="button"
+                className="service-card__toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenFeatures((prev) => ({ ...prev, [item.id]: !prev[item.id] }));
+                }}
+              >
+                Ver más {isOpen ? "▲" : "▼"}
+              </button>
+
+              {isOpen && item.features && (
+                <ul className="service-card__features">
+                  {item.features.map((f, i) => <li key={i}>{f}</li>)}
+                </ul>
+              )}
             </div>
-          </>
-        );
-      }
+          );
+        })}
+      </div>
+    </div>
+  );
 
-      return (
-        <>
-          {renderQuestionHeader(
-            "Indicanos qué tipo de mascota es",
-            "Seleccioná la categoría que mejor representa a tu mascota."
-          )}
-
-          <div className="grid grid-2">
-            {otherPetTypes.map((item) => (
-              <OptionCard
-                key={item.id}
-  title={item.title}
-  desc={item.desc}
-  icon={item.icon}
-  variant="other-detail"
-  selected={formData.petType === item.id}
-  onClick={() =>
-    setFormData((prev) => ({ ...prev, petType: item.id }))
-  }
-/>
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 2) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "¿De qué tamaño es tu mascota?",
-            "Esto nos ayuda a preparar correctamente la logística del homenaje."
-          )}
-
-          <div className="grid grid-2">
-            {sizes.map((item) => (
-              <OptionCard
-                key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.size === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, size: item.id }))
-                }
-              />
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 3) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "Elegí el servicio que te gustaría ofrecerle",
-            "Seleccioná la opción que mejor acompañe este momento."
-          )}
-
-          <div className="grid grid-2">
-            {services.map((item) => (
-              <OptionCard
-                key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.service === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({ ...prev, service: item.id }))
-                }
-              />
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 4) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "¿Cómo preferís que recibamos a tu mascota?",
-            "Elegí si la acercás a un punto de atención o si preferís retiro a domicilio."
-          )}
-
-          <div className="grid grid-2">
-            {pickupMethods.map((item) => (
-              <OptionCard
-                key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.pickupMethod === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    pickupMethod: item.id,
-                  }))
-                }
-              />
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 5) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "¿Dónde querés recibir las cenizas?",
-            "Seleccioná la modalidad de entrega que te resulte más cómoda."
-          )}
-
-          <div className="grid grid-2">
-            {ashesDelivery.map((item) => (
-              <OptionCard
-                key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.ashesDelivery === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    ashesDelivery: item.id,
-                  }))
-                }
-              />
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 6) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "Indicá la zona donde vamos a buscar a tu mascota",
-            "Esto nos permite organizar correctamente la cobertura y la logística."
-          )}
-
-          <div className="grid grid-2">
-            {zones.map((item) => (
-              <OptionCard
-                key={item.id}
-                title={item.title}
-                desc={item.desc}
-                selected={formData.zone === item.id}
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    zone: item.id,
-                  }))
-                }
-              />
-            ))}
-          </div>
-        </>
-      );
-    }
-
-    if (step === 7) {
-      return (
-        <>
-          {renderQuestionHeader(
-            "Último paso: tus datos para acompañarte mejor",
-            "Completá tus datos y nos pondremos en contacto para continuar con la solicitud."
-          )}
-
-          <div className="form-grid">
-            <div className="form-field">
-              <label htmlFor="petName">Nombre de la mascota</label>
-              <input
-                id="petName"
-                type="text"
-                value={formData.petName}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, petName: e.target.value }))
-                }
-              />
+  // ── STEP 4: retiro ─────────────────────────────────────────
+  const renderStep4 = () => (
+    <div className="section-block">
+      <p className="section-block__title">
+        ¿Cómo preferís que recibamos a tu mascota?
+      </p>
+      <div className="pickup-grid">
+        {pickupMethods.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`pickup-card${formData.pickupMethod === item.id ? " selected" : ""}`}
+            onClick={() =>
+              setFormData((p) => ({
+                ...p,
+                pickupMethod: item.id,
+                zone: item.id !== "domicilio" ? "" : p.zone,
+              }))
+            }
+          >
+            <div className="pickup-card__body">
+              <span className="pickup-card__label">{item.label ?? "La llevo a"}</span>
+              <div className="pickup-card__name">{item.title}</div>
+              {item.addr && (
+                <div className="pickup-card__addr">{item.addr}</div>
+              )}
             </div>
+            <div className="pickup-card__footer">{item.hours ?? "Horario a coordinar"}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
-            <div className="form-field">
-              <label htmlFor="ownerName">Tu nombre</label>
-              <input
-                id="ownerName"
-                type="text"
-                value={formData.ownerName}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, ownerName: e.target.value }))
-                }
-              />
-            </div>
+  // ── STEP 5: cenizas ────────────────────────────────────────
+  const renderStep5 = () => (
+    <div className="section-block">
+      <p className="section-block__title">
+        ¿Dónde querés recibir las cenizas?
+      </p>
+      <div className="ashes-grid">
+        {ashesDelivery.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`ashes-card${formData.ashesDelivery === item.id ? " selected" : ""}`}
+            onClick={() => setFormData((p) => ({ ...p, ashesDelivery: item.id }))}
+          >
+            <div className="ashes-card__name">{item.title}</div>
+            <div className="ashes-card__desc">{item.desc}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
-            <div className="form-field">
-              <label htmlFor="phone">Teléfono</label>
-              <input
-                id="phone"
-                type="text"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                }
-              />
-            </div>
+  // ── STEP 6: zona (solo si retiro a domicilio) ──────────────
+  const renderStep6 = () => (
+    <div className="section-block">
+      <p className="section-block__title">
+        Indicá la zona donde vamos a buscar a tu mascota
+      </p>
+      <div className="zone-grid">
+        {zones.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`zone-card${formData.zone === item.id ? " selected" : ""}`}
+            onClick={() => setFormData((p) => ({ ...p, zone: item.id }))}
+          >
+            <div className="zone-card__name">{item.title}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
-            <div className="form-field">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-              />
-            </div>
-
-            <div className="form-field form-field--full">
-              <label htmlFor="notes">Observaciones</label>
-              <textarea
-                id="notes"
-                rows="5"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-        </>
-      );
-    }
-
-    return (
-      <div className="success-panel">
-        <span className="success-panel__badge">Aires de Paz</span>
-        <h2 className="success-panel__title">
-          Gracias por confiar en nosotros
-        </h2>
-        <p className="success-panel__text">
-          Tu solicitud quedó registrada correctamente. En la versión final,
-          desde acá podremos enviarla a WhatsApp, email o guardarla en base de
-          datos para el panel administrador.
-        </p>
-
-        <div className="success-panel__summary">
-          <p><strong>Nombre mascota:</strong> {formData.petName || "—"}</p>
-          <p><strong>Tipo:</strong> {selectedPetType}</p>
-          <p><strong>Tamaño:</strong> {selectedSize}</p>
-          <p><strong>Servicio:</strong> {selectedService}</p>
-          <p><strong>Retiro:</strong> {selectedPickup}</p>
-          <p><strong>Cenizas:</strong> {selectedAshes}</p>
-          <p><strong>Zona:</strong> {selectedZone}</p>
-          <p><strong>Responsable:</strong> {formData.ownerName || "—"}</p>
-          <p><strong>Teléfono:</strong> {formData.phone || "—"}</p>
-          <p><strong>Email:</strong> {formData.email || "—"}</p>
+  // ── DATOS ──────────────────────────────────────────────────
+  const renderDatos = () => (
+    <div className="section-block">
+      <p className="section-block__title" style={{ fontSize: 20, marginBottom: 6 }}>
+        Último paso: tus datos para acompañarte mejor
+      </p>
+      <p style={{ textAlign: "center", color: "var(--text-soft)", fontSize: 14, marginBottom: 28 }}>
+        Completá tus datos y nos pondremos en contacto para confirmar el homenaje
+      </p>
+      <div className="form-minimal">
+        <div>
+          <input
+            className="form-minimal__input"
+            type="text"
+            placeholder="Nombre completo"
+            value={formData.ownerName}
+            onChange={(e) => setFormData((p) => ({ ...p, ownerName: e.target.value }))}
+          />
         </div>
-
-        <div className="success-panel__actions">
-          <button
-            type="button"
-            className="action-button action-button--secondary"
-            onClick={onBackHome}
-          >
-            Volver al inicio
-          </button>
-
-          <button
-            type="button"
-            className="action-button action-button--primary"
-            onClick={resetFlow}
-          >
-            Empezar de nuevo
-          </button>
+        <div>
+          <input
+            className="form-minimal__input"
+            type="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+          />
+        </div>
+        <div>
+          <input
+            className="form-minimal__input"
+            type="text"
+            placeholder="Nombre de tu mascota"
+            value={formData.petName}
+            onChange={(e) => setFormData((p) => ({ ...p, petName: e.target.value }))}
+          />
+        </div>
+        <div>
+          <input
+            className="form-minimal__input"
+            type="tel"
+            placeholder="Teléfono"
+            value={formData.phone}
+            onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
+          />
+          <p className="form-minimal__hint">
+            Con código de área, sin 0, ni 15. | Ej. para Bs.As. 1155555555
+          </p>
         </div>
       </div>
-    );
+    </div>
+  );
+
+  // ── PANTALLA FINAL ─────────────────────────────────────────
+  const renderSuccess = () => (
+    <div className="success">
+      <div className="success__check">✓</div>
+
+      <h2 className="success__title">Gracias por confiar en Aires de Paz.</h2>
+
+      <p className="success__text">
+        Tu homenaje quedó reservado. Sabemos lo importante que es este momento
+        y estaremos a tu lado en cada detalle. Muy pronto nos comunicaremos
+        para coordinar el retiro y la entrega.
+      </p>
+
+      {selectedService && (
+        <>
+          <p style={{ fontSize: 13, color: "var(--text-soft)", margin: 0 }}>
+            El servicio contratado es:
+          </p>
+          <div className="success__service-box">
+            <div className="success__service-name">{selectedService.title}</div>
+            <div className="success__service-desc">{selectedService.desc}</div>
+          </div>
+        </>
+      )}
+
+      <div className="success__payment">
+        <p className="intro">Podés hacer transferencia o depósito a la siguiente cuenta:</p>
+        {[
+          ["Banco", "BBVA"],
+          ["Cuenta", "CA $ 7-54372/8"],
+          ["CBU", "0170007740000005437289"],
+          ["Alias", "AIRESDEPAZ"],
+          ["Código Swift", "BFRPARBAXXX"],
+        ].map(([k, v]) => (
+          <div key={k} className="success__payment-row">
+            <span className="pkey">{k}</span>
+            <span className="pval">{v}</span>
+          </div>
+        ))}
+      </div>
+
+      <p className="success__also">
+        También podés pagarlo en efectivo al momento de entrega de tu mascota.
+      </p>
+
+      <div className="success__actions">
+        <button
+          type="button"
+          className="btn btn--whatsapp"
+          onClick={() =>
+            window.open(
+              `https://wa.me/5493410000000?text=Hola%2C+quiero+confirmar+el+homenaje+de+${encodeURIComponent(formData.petName || "mi mascota")}`,
+              "_blank"
+            )
+          }
+        >
+          💬 Confirmar por WhatsApp
+        </button>
+
+        <button type="button" className="btn btn--secondary" onClick={resetFlow}>
+          Nueva cotización
+        </button>
+      </div>
+    </div>
+  );
+
+  // ── RENDER STEP ────────────────────────────────────────────
+  const dataStep    = needsZone ? 7 : 6;
+  const successStep = needsZone ? 8 : 7;
+  const isFinal     = step === successStep;
+
+  const renderCurrentStep = () => {
+    if (step === 1)        return renderStep1();
+    if (step === 2)        return renderStep2();
+    if (step === 3)        return renderStep3();
+    if (step === 4)        return renderStep4();
+    if (step === 5)        return renderStep5();
+    if (step === 6 && needsZone) return renderStep6();
+    if (step === dataStep) return renderDatos();
+    if (isFinal)           return renderSuccess();
+    return null;
   };
 
   return (
     <div className="app">
-      <div className="container">
-        <div className="quote-topbar">
-          <button
-            type="button"
-            className="action-button action-button--secondary"
-            onClick={onBackHome}
-          >
-            ← Volver al inicio
-          </button>
+      {/* Step indicator */}
+      {!isFinal && (
+        <StepIndicator step={step} totalSteps={effectiveTotalSteps} />
+      )}
+
+      {/* Contenido del paso actual */}
+      <div className="quote-content">
+        <div className="step-content" key={animKey}>
+          {renderCurrentStep()}
         </div>
 
-        <header className="hero card-shell">
-          <span className="hero__brand">Aires de Paz</span>
-          <span className="hero__badge">Cotizador online</span>
-          <h1 className="hero__title">Elegí el homenaje para tu mascota</h1>
-          <p className="hero__text">
-            Un recorrido guiado, claro y humano para acompañarte paso a paso.
-          </p>
-        </header>
-
-        <StepIndicator step={step} totalSteps={TOTAL_STEPS} />
-
-        <main className={`layout ${step < TOTAL_STEPS ? "quote-layout--single" : ""}`}>
-          <section className="workspace workspace--question card-shell">
-            {renderStepContent()}
-
-            {step < TOTAL_STEPS && (
-              <NavigationButtons
-                step={step}
-                totalSteps={TOTAL_STEPS}
-                onBack={handleBack}
-                onNext={handleNext}
-                canContinue={canContinue()}
-              />
+        {/* Navegación */}
+        {!isFinal && (
+          <div className="nav-buttons">
+            {(step > 1 || showOtherPetTypes) && (
+              <button
+                type="button"
+                className="btn btn--secondary"
+                onClick={handleBack}
+              >
+                ← Volver
+              </button>
             )}
-          </section>
-
-          {step === TOTAL_STEPS && (
-            <aside className="summary card-shell">
-              <h3 className="summary__title">Resumen final</h3>
-
-              <div className="summary__box">
-                <p><strong>Mascota:</strong> {selectedPetType}</p>
-                <p><strong>Tamaño:</strong> {selectedSize}</p>
-                <p><strong>Servicio:</strong> {selectedService}</p>
-                <p><strong>Retiro:</strong> {selectedPickup}</p>
-                <p><strong>Cenizas:</strong> {selectedAshes}</p>
-                <p><strong>Zona:</strong> {selectedZone}</p>
-                <p><strong>Nombre mascota:</strong> {formData.petName.trim() || "—"}</p>
-                <p><strong>Responsable:</strong> {formData.ownerName.trim() || "—"}</p>
-                <p><strong>Teléfono:</strong> {formData.phone.trim() || "—"}</p>
-                <p><strong>Email:</strong> {formData.email.trim() || "—"}</p>
-              </div>
-            </aside>
-          )}
-        </main>
+            <button
+              type="button"
+              className={`btn ${step === dataStep ? "btn--green" : "btn--primary"}`}
+              onClick={handleNext}
+              disabled={!canContinue()}
+            >
+              {step === dataStep ? "Reservar" : "Siguiente"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

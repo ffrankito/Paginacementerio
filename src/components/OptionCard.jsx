@@ -1,28 +1,40 @@
 export default function OptionCard({
   title,
   desc,
-  selected = false,
-  onClick,
   icon: Icon,
-  variant = "default",
+  variant,
+  selected,
+  onClick,
+  features,
+  badge,
 }) {
   return (
     <button
       type="button"
-      className={`option-card option-card--${variant} ${selected ? "selected" : ""}`}
+      className={`option-card option-card--${variant ?? "default"}${selected ? " selected" : ""}`}
       onClick={onClick}
-      aria-pressed={selected}
     >
-      <span className="option-card__content">
+      {badge && <span className="option-card__badge">{badge}</span>}
+
+      <div className="option-card__content">
         {Icon && (
-          <span className="option-card__icon-wrap">
-            <Icon className="option-card__icon" strokeWidth={1.8} />
-          </span>
+          <div className="option-card__icon-wrap">
+            <Icon className="option-card__icon" strokeWidth={1.5} />
+          </div>
         )}
 
         <h3 className="option-card__title">{title}</h3>
-        <p className="option-card__desc">{desc}</p>
-      </span>
+
+        {desc && <p className="option-card__desc">{desc}</p>}
+
+        {features && features.length > 0 && (
+          <ul className="option-card__features">
+            {features.map((f, i) => (
+              <li key={i}>{f}</li>
+            ))}
+          </ul>
+        )}
+      </div>
     </button>
   );
 }
