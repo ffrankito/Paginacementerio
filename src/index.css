@@ -415,3 +415,126 @@ img { max-width: 100%; display: block; }
   .site-header__nav-link--hidden-mobile { display: none; }
   .site-header__logo-img { height: 42px; }
 }
+
+/* ─── TIENDA ──────────────────────────────────────────────── */
+
+.store {
+  width: 100%;
+  margin-top: 8px;
+  padding-top: 32px;
+  border-top: 2px dashed var(--border);
+}
+
+.store__header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.store__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+
+.store__subtitle {
+  font-size: 14px;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+.store__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.store-card {
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: var(--shadow);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.store-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+.store-card__image {
+  height: 150px;
+  background: #f5f8f5;
+  overflow: hidden;
+}
+
+.store-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.store-card__no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+
+.store-card__body { padding: 14px; }
+
+.store-card__category {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.store-card__name {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 4px;
+  line-height: 1.3;
+}
+
+.store-card__desc {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.store-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.store-card__price {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--green);
+}
+
+.store-card__btn {
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition);
+}
+
+.store-card__btn:hover { background: var(--green-dark); }

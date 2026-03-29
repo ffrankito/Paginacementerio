@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Dog, Cat, PawPrint, Rabbit, Bird, Scale, MapPin } from "lucide-react";
 import StepIndicator from "../components/StepIndicator";
-import { supabase } from "../lib/supabase";
+import Store from "../components/Store";
+import { db } from "../lib/supabase";
+import { useSettings } from "../lib/useSettings";
 import { petTypes } from "../data/petTypes";
 import { sizes } from "../data/sizes";
 import { services } from "../data/services";
@@ -32,6 +34,7 @@ const initialOpenFeatures = {
 };
 
 export default function QuotePage() {
+  const { settings } = useSettings();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(initialFormData);
   const [showOtherPetTypes, setShowOtherPetTypes] = useState(false);
@@ -73,7 +76,7 @@ export default function QuotePage() {
     // Al terminar el paso de datos → guardar en Supabase antes de avanzar
     if (step === dataStep) {
       try {
-        await supabase.from('quotes').insert({
+        await db.from('quotes').insert({
           pet_type:       formData.petType,
           pet_size:       formData.size,
           pet_name:       formData.petName,
@@ -86,7 +89,6 @@ export default function QuotePage() {
           email:          formData.email,
         });
       } catch (err) {
-        // No bloquear al usuario si falla el guardado
         console.error('Error guardando cotización:', err);
       }
     }
@@ -379,11 +381,11 @@ export default function QuotePage() {
       <div className="success__payment">
         <p className="intro">Podés hacer transferencia o depósito a la siguiente cuenta:</p>
         {[
-          ["Banco", "BBVA"],
-          ["Cuenta", "CA $ 7-54372/8"],
-          ["CBU", "0170007740000005437289"],
-          ["Alias", "AIRESDEPAZ"],
-          ["Código Swift", "BFRPARBAXXX"],
+          ["Banco",         settings.bank_name],
+          ["Cuenta",        settings.bank_account],
+          ["CBU",           settings.bank_cbu],
+          ["Alias",         settings.bank_alias],
+          ["Código Swift",  settings.bank_swift],
         ].map(([k, v]) => (
           <div key={k} className="success__payment-row">
             <span className="pkey">{k}</span>
@@ -392,9 +394,7 @@ export default function QuotePage() {
         ))}
       </div>
 
-      <p className="success__also">
-        También podés pagarlo en efectivo al momento de entrega de tu mascota.
-      </p>
+      <p className="success__also">{settings.cash_note}</p>
 
       <div className="success__actions">
         <button
@@ -402,7 +402,7 @@ export default function QuotePage() {
           className="btn btn--whatsapp"
           onClick={() =>
             window.open(
-              `https://wa.me/5493410000000?text=Hola%2C+quiero+confirmar+el+homenaje+de+${encodeURIComponent(formData.petName || "mi mascota")}`,
+              `https://wa.me/${settings.whatsapp}?text=Hola%2C+quiero+confirmar+el+homenaje+de+${encodeURIComponent(formData.petName || "mi mascota")}`,
               "_blank"
             )
           }
@@ -414,6 +414,8 @@ export default function QuotePage() {
           Nueva cotización
         </button>
       </div>
+
+      <Store settings={settings} />
     </div>
   );
 
